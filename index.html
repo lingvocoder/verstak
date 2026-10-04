@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лингвистический верстак версия 1.0</title>
+    <!-- Оформление вынесено в отдельный файл -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <h1>Лингвистический верстак</h1>
+        <!-- Номер версии подставляется из js/data.js (константа VERSION) -->
+        <p>Версия <span id="version"></span> · частоты · конкорданс · стилометрия</p>
+    </header>
+
+    <!-- ===== Поле для текста: общее для всех вкладок ===== -->
+    <div class="panel">
+        <label for="text" class="big">Текст</label>
+        <textarea id="text" placeholder="Вставьте текст сюда"></textarea>
+        <div class="row">
+            <button data-sample="ru">Пример: русский</button>
+            <button data-sample="en">Пример: английский</button>
+            <button id="clear">Очистить</button>
+            <span id="count" class="muted"></span>
+        </div>
+    </div>
+
+    <!-- ===== Переключатель вкладок. data-tab должен совпадать с id секции без «tab-» ===== -->
+    <nav class="tabs">
+        <button data-tab="freq" class="on">Частоты</button>
+        <button data-tab="kwic">Конкорданс</button>
+        <button data-tab="style">Стилометрия</button>
+        <button data-tab="len">Длины слов</button>
+    </nav>
+
+    <!-- ===== Вкладка 1. Частоты ===== -->
+    <section id="tab-freq" class="tab on panel">
+        <div class="row"></div>
+        <label><input type="checkbox" id="useStop"> убрать стоп-слова</label>
+        <label>показать
+            <select id="topN">
+                <option>10</option>
+                <option selected>20</option>
+                <option>50</option>
+                <option>100</option>
+            </select>
+        </label>
+        <details>
+            <summary>Список стоп-слов (можно править)</summary>
+            <textarea id="stop" class="small"></textarea>
+        </details>
+        <div id="freqStats" class="stats"></div>
+        <div class="scroll">
+            <table id="freqTable"></table>
+        </div>
+        <details>
+            <summary>Показать код</summary>
+            <pre id="code-freq"></pre>
+        </details>
+    </section>
+
+    <!-- ===== Вкладка 2. Конкорданс ===== -->
+    <section id="tab-kwic" class="tab panel">
+        <div class="row">
+            <input type="text" id="query" placeholder="Слово" value="реферат">
+            <label><input type="checkbox" id="prefix"> как начало слова</label>
+            <label>контекст
+                <select id="width">
+                    <option>20</option>
+                    <option selected>35</option>
+                    <option>50</option>
+                </select> знаков
+            </label>
+        </div>
+        <div id="kwicStats" class="muted" style="margin-top:8px"></div>
+        <div class="scroll">
+            <table id="kwicTable" class="kwic"></table>
+        </div>
+        <details>
+            <summary>Показать код</summary>
+            <pre id="code-kwic"></pre>
+        </details>
+    </section>
+
+    <!-- ===== Вкладка 3. Стилометрия ===== -->
+    <section id="tab-style" class="tab panel">
+        <p class="muted">Текст А — поле вверху. Текст Б — необязательно, для сравнения.</p>
+        <textarea id="textB" class="small" placeholder="Текст Б (необязательно)"></textarea>
+        <details>
+            <summary>Список клише (можно править)</summary>
+            <textarea id="cliches" class="small"></textarea>
+        </details>
+        <div class="scroll">
+            <table id="styleTable" style="margin-top:10px"></table>
+        </div>
+        <details>
+            <summary>Показать код</summary>
+            <pre id="code-style"></pre>
+        </details>
+    </section>
+
+    <!-- ===== Вкладка 4. Длины слов ===== -->
+    <section id="tab-len" class="tab panel">
+        <div class="scroll"><table id="lenTable"></table></div>
+    </section>
+</div>
+
+<!--
+  Порядок подключения важен: каждый следующий файл пользуется тем, что объявлено в предыдущих.
+  1) data.js — примеры текстов и списки (только данные)
+  2) core.js — лингвистические функции (ничего не знают о странице)
+  3) ui.js   — связывает функции с кнопками и таблицами
+  Это обычные скрипты, а не модули (type="module"): так страница открывается
+  двойным щелчком по файлу, без сервера.
+-->
+<script src="js/data.js"></script>
+<script src="js/core.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

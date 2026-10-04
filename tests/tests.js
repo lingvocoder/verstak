@@ -1,0 +1,57 @@
+// =====================================================================
+//  tests.js — проверки функций из core.js.
+//
+//  Каждая проверка: название, что получилось, что должно было получиться.
+//  Добавить тест = дописать одну строку check(...) внизу списка.
+// =====================================================================
+
+const results = [];
+
+function check(name, actual, expected) {
+  // Сравниваем через JSON: так можно сравнивать и числа, и списки, и объекты
+  const a = JSON.stringify(actual), e = JSON.stringify(expected);
+  results.push({ name, ok: a === e, a, e });
+}
+
+// Для дробных чисел: округляем, чтобы 0.1 + 0.2 не мешало сравнению
+const round = (x, d = 2) => Math.round(x * 10 ** d) / 10 ** d;
+
+// ---------- tokenize: что машина считает словом ----------
+check("дефис внутри слова сохраняется", tokenize("По-моему"), ["по-моему"]);
+check("«т. е.» распадается на две буквы", tokenize("т. е."), ["т", "е"]);
+check("цифры словом не считаются", tokenize("в 2004 году"), ["в", "году"]);
+check("апостроф режет didn't надвое", tokenize("didn't"), ["didn", "t"]);
+check("пустой текст — пустой список", tokenize(""), []);
+check("регистр не важен", tokenize("Реферат РЕФЕРАТ"), ["реферат", "реферат"]);
+check("длины слов", wordLengths(tokenize("я ты они")), [[1, 1], [2, 1], [3, 1]]);
+
+// ---------- freq: частотный список ----------
+check("частоты по убыванию", freq(["б", "а", "а"]), [["а", 2], ["б", 1]]);
+
+// ---------- kwic: конкорданс ----------
+check("«реферат» целиком: 3 вхождения", kwic(SAMPLES.ru, "реферат", 20, false).length, 3);
+check("«реферат» как начало слова: 6", kwic(SAMPLES.ru, "реферат", 20, true).length, 6);
+check("регистр запроса не важен", kwic("Сталь и сталь", "СТАЛЬ", 5, false).length, 2);
+check("строка конкорданса: контекст и слово как в тексте",
+  kwic("А Реферат б", "реферат", 2, false), [{ left: "А ", word: "Реферат", right: " б" }]);
+
+// ---------- sentences: границы предложений ----------
+check("«т. е.» ломает границы предложений",
+  sentences("Это т. е. пример. Второе!"), ["Это т.", "е.", "пример.", "Второе!"]);
+
+// ---------- stylometry: показатели русского примера ----------
+const st = stylometry(SAMPLES.ru, new Set(STOP_DEFAULT), ["важно отметить"]);
+check("в русском примере 80 слов", st.tokens, 80);
+check("машина нашла 11 «предложений» (на самом деле их 9)", st.sentences, 11);
+check("TTR русского примера 0,86", round(st.ttr), 0.86);
+check("средняя длина слова: раз два три = 3", stylometry("Раз два три.", new Set(), []).meanWordLen, 3);
+
+// ---------- вывод результатов на страницу ----------
+const failed = results.filter(r => !r.ok).length;
+const summary = document.getElementById("summary");
+summary.textContent = failed ? `Провалено: ${failed} из ${results.length}` : `Все ${results.length} тестов пройдены`;
+summary.className = failed ? "bad" : "ok";
+document.getElementById("list").innerHTML = results.map(r => r.ok
+  ? `<li class="ok">✓ ${r.name}</li>`
+  : `<li class="bad">✗ ${r.name}<br><code>получилось: ${r.a}</code><br><code>ожидалось: ${r.e}</code></li>`
+).join("");

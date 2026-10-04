@@ -1,0 +1,260 @@
+/* Лингвистический верстак — оформление.
+   Цвета заданы переменными в :root: поменяй их здесь, и изменится вся страница.
+   Второй набор — для тёмной темы телефона. */
+
+:root {
+    --bg: #f7f5f0;
+    --panel: #ffffff;
+    --ink: #1d1d1f;
+    --muted: #6b6b70;
+    --line: #e2ded5;
+    --accent: #2f5d8a;
+    --accent-ink: #ffffff;
+    --mark: #ffe28a;
+    --warn: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg: #17181b;
+        --panel: #212226;
+        --ink: #ececef;
+        --muted: #a0a0a8;
+        --line: #33343a;
+        --accent: #7fb0e0;
+        --accent-ink: #111;
+        --mark: #6b5a12;
+        --warn: #ff8a80;
+    }
+}
+
+:root[data-theme="dark"] {
+    --bg: #17181b;
+    --panel: #212226;
+    --ink: #ececef;
+    --muted: #a0a0a8;
+    --line: #33343a;
+    --accent: #7fb0e0;
+    --accent-ink: #111;
+    --mark: #6b5a12;
+    --warn: #ff8a80;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.5 -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+header h1 {
+    margin: 8px 0 0;
+    font-size: 1.6rem;
+}
+
+header p {
+    margin: 2px 0 16px;
+    color: var(--muted);
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+label.big {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    resize: vertical;
+}
+
+textarea.small {
+    min-height: 90px;
+    font-size: 0.9rem;
+}
+
+input[type="text"], select {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+}
+
+button {
+    font: inherit;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+button:hover {
+    border-color: var(--accent);
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.tabs button.on {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+}
+
+.tab {
+    display: none;
+}
+
+.tab.on {
+    display: block;
+}
+
+.stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.stat {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+.stat b {
+    font-size: 1.2rem;
+    display: block;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+th, td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+}
+
+th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+td.num, th.num {
+    text-align: right;
+}
+
+.scroll {
+    overflow-x: auto;
+}
+
+.kwic {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+}
+
+.kwic td {
+    white-space: nowrap;
+}
+
+.kwic td.left {
+    text-align: right;
+    color: var(--muted);
+}
+
+.kwic td.right {
+    color: var(--muted);
+}
+
+.kwic td.kw {
+    font-weight: 700;
+    background: var(--mark);
+    color: var(--ink);
+    text-align: center;
+}
+
+details {
+    margin-top: 10px;
+}
+
+summary {
+    cursor: pointer;
+    color: var(--accent);
+}
+
+pre {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+}
+
+.two {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 760px) {
+    .two {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.empty {
+    color: var(--muted);
+    font-style: italic;
+}
