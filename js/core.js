@@ -76,7 +76,7 @@ function stylometry(text, stopSet, cliches) {
         meanLen: mean,
         sdLen: sd,
         ttr: new Set(tokens).size / tokens.length,
-        ttr_100: new Set(firstHundred).size / firstHundred.length,
+        ttr100: new Set(firstHundred).size / firstHundred.length,
         stopShare: tokens.filter(t => stopSet.has(t)).length / tokens.length,
         meanWordLen: meanWordLen,
         // клише: режем текст по клише — кусков на 1 больше, чем вхождений
