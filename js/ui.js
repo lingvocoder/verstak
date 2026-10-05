@@ -3,115 +3,313 @@
 //
 //  Схема одна для всех вкладок:
 //    пользователь что-то меняет → срабатывает событие → renderAll()
-//    → каждая render-функция берёт данные из полей, зовёт функцию ядра
+//    → каждая render-функция читает поля, зовёт функцию ядра
 //      и рисует результат в таблицу.
+//
+//  Порядок в файле: элементы страницы → помощники → сборка таблиц
+//  → вкладки → обработчики событий → запуск.
 // =====================================================================
 
-// Короткое имя для поиска элемента по id: $("text") вместо document.getElementById("text")
-const $ = id => document.getElementById(id);
-const text = $("text"), textB = $("textB");
+// ---------- элементы страницы: находим один раз и дальше берём отсюда ----------
 
-// ---------- начальное заполнение страницы ----------
-$("version").textContent = VERSION;
-$("stop").value = STOP_DEFAULT;
-$("cliches").value = CLICHES_DEFAULT;
-text.value = SAMPLES.ru;
+const byId = id => document.getElementById(id);
 
-// Блоки «Показать код»: функция в JavaScript умеет выдать собственный исходный текст.
-// Поэтому студенты всегда видят ровно тот код, который сейчас работает.
-$("code-freq").textContent =
-  "// Слово = буквы любого алфавита (\\p{L}) подряд, можно через дефис.\n" +
-  "// Цифр и апострофа в шаблоне нет — поэтому «2004» не слово, а didn't распадается.\n" +
-  "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq;
-$("code-kwic").textContent = kwic.toString();
-$("code-style").textContent = sentences + "\n\n" + stylometry;
+const els = {
+  version: byId("version"),
+  // общий текст
+  textA: byId("text-a"),
+  clearButton: byId("clear-text"),
+  wordCount: byId("word-count"),
+  sampleButtons: document.querySelectorAll("[data-sample]"),
+  // вкладки
+  tabButtons: document.querySelectorAll("[role=tab]"),
+  tabPanels: document.querySelectorAll("[role=tabpanel]"),
+  // «Частоты»
+  useStopWords: byId("use-stop-words"),
+  topN: byId("top-n"),
+  stopWords: byId("stop-words"),
+  freqStats: byId("freq-stats"),
+  freqTable: byId("freq-table"),
+  freqCode: byId("code-freq"),
+  // «Конкорданс»
+  query: byId("kwic-query"),
+  asPrefix: byId("kwic-prefix"),
+  contextWidth: byId("kwic-width"),
+  kwicStatus: byId("kwic-status"),
+  kwicTable: byId("kwic-table"),
+  kwicCode: byId("code-kwic"),
+  // «Стилометрия»
+  textB: byId("text-b"),
+  cliches: byId("cliches"),
+  styleTable: byId("style-table"),
+  styleCode: byId("code-style"),
+  // «Длины слов»
+  lenTable: byId("len-table"),
+};
 
-// ---------- мелкие помощники ----------
-const stopSet = () => new Set(tokenize($("stop").value));          // стоп-слова из поля → множество
-const fmt = (x, d = 2) => Number.isFinite(x) ? x.toFixed(d).replace(".", ",") : "—"; // 0.8625 → «0,86»
-// Экранирование: если в тексте есть < или &, браузер не должен принять их за разметку
-const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// ---------- помощники ----------
+
+// Число с запятой: 0.8625 → «0,86». Если считать не из чего (NaN, Infinity) — прочерк.
+function formatNumber(value, digits = 2) {
+  if (!Number.isFinite(value)) {
+    return "—";
+  }
+  return value.toFixed(digits).replace(".", ",");
+}
+
+// Экранирование: если в тексте есть < или &, браузер не должен принять их за разметку.
+// Любой текст пользователя попадает в innerHTML только через эту функцию.
+const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
+
+function escapeHtml(text) {
+  return text.replace(/[&<>"]/g, char => HTML_ESCAPES[char]);
+}
+
+// Стоп-слова из поля → множество (как set() в Python): проверка «есть ли слово» быстрая
+function readStopWords() {
+  return new Set(tokenize(els.stopWords.value));
+}
+
+// Клише из поля: по одному на строку, без пустых строк, маленькими буквами
+function readCliches() {
+  return els.cliches.value
+    .split("\n")
+    .map(line => line.trim().toLowerCase())
+    .filter(line => line !== "");
+}
+
+// ---------- сборка таблиц ----------
+// Содержимое ячеек — уже готовый HTML: текст пользователя экранируем до того, как передать сюда.
+
+function cell(content, className) {
+  const classAttr = className ? ` class="${className}"` : "";
+  return `<td${classAttr}>${content}</td>`;
+}
+
+function headerCell(content, className) {
+  const classAttr = className ? ` class="${className}"` : "";
+  return `<th${classAttr}>${content}</th>`;
+}
+
+function row(cells) {
+  return `<tr>${cells.join("")}</tr>`;
+}
+
+// Заполнить таблицу: строка заголовков (может не быть) + строки данных.
+// Если данных нет и задан emptyText — одна серая строка с этим текстом.
+function fillTable(table, headerRow, bodyRows, emptyText) {
+  if (bodyRows.length === 0 && emptyText) {
+    table.innerHTML = row([cell(emptyText, "table__empty")]);
+    return;
+  }
+  table.innerHTML = (headerRow || "") + bodyRows.join("");
+}
 
 // ---------- вкладка «Частоты» ----------
+
+function statsItem(value, label) {
+  return `<div class="stats__item"><span class="stats__value">${value}</span><span class="stats__label">${label}</span></div>`;
+}
+
 function renderFreq() {
-    let tokens = tokenize(text.value);
-    const all = tokens.length, types = new Set(tokens).size;
-    if ($("useStop").checked) { const s = stopSet(); tokens = tokens.filter(t => !s.has(t)); }
-    const rows = freq(tokens).slice(0, +$("topN").value);          // +"20" → 20: строка в число
-    $("count").textContent = all + " слов";
-    $("freqStats").innerHTML =
-      `<div class="stats__item"><span class="stats__value">${all}</span><span class="stats__label">словоупотреблений</span></div>` +
-      `<div class="stats__item"><span class="stats__value">${types}</span><span class="stats__label">разных словоформ</span></div>` +
-      `<div class="stats__item"><span class="stats__value">${fmt(types / all)}</span><span class="stats__label">доля разных (TTR)</span></div>`;
-    if (!rows.length) { $("freqTable").innerHTML = `<tr><td class="table__empty">Нет слов</td></tr>`; return; }
-    $("freqTable").innerHTML =
-      `<tr><th class="table__num">Ранг</th><th>Словоформа</th><th class="table__num">Частота</th><th class="table__num">Ранг × частота</th></tr>` +
-      rows.map(([w, n], i) => `<tr><td class="table__num">${i + 1}</td><td>${esc(w)}</td><td class="table__num">${n}</td><td class="table__num">${(i + 1) * n}</td></tr>`).join("");
+  const allTokens = tokenize(els.textA.value);
+  const tokenCount = allTokens.length;
+  const typeCount = new Set(allTokens).size;
+
+  // стоп-слова убираем только из таблицы; счётчики выше считаются по всему тексту
+  let tokens = allTokens;
+  if (els.useStopWords.checked) {
+    const stopWords = readStopWords();
+    tokens = allTokens.filter(token => !stopWords.has(token));
+  }
+  const topN = Number(els.topN.value);   // значение <select> — строка: "20" → 20
+  const rows = freq(tokens).slice(0, topN);
+
+  els.wordCount.textContent = tokenCount + " слов";
+  els.freqStats.innerHTML =
+    statsItem(tokenCount, "словоупотреблений") +
+    statsItem(typeCount, "разных словоформ") +
+    statsItem(formatNumber(typeCount / tokenCount), "доля разных (TTR)");
+
+  const headerRow = row([
+    headerCell("Ранг", "table__num"),
+    headerCell("Словоформа"),
+    headerCell("Частота", "table__num"),
+    headerCell("Ранг × частота", "table__num"),
+  ]);
+  // ранг × частота ≈ постоянная величина — закон Ципфа
+  const bodyRows = rows.map(([word, count], index) => {
+    const rank = index + 1;
+    return row([
+      cell(rank, "table__num"),
+      cell(escapeHtml(word)),
+      cell(count, "table__num"),
+      cell(rank * count, "table__num"),
+    ]);
+  });
+  fillTable(els.freqTable, headerRow, bodyRows, "Нет слов");
 }
 
 // ---------- вкладка «Конкорданс» ----------
+
 function renderKwic() {
-    const q = $("query").value.trim();
-    if (!q) { $("kwicTable").innerHTML = ""; $("kwicStats").textContent = "Введите слово"; return; }
-    const lines = kwic(text.value, q, +$("width").value, $("prefix").checked);
-    $("kwicStats").textContent = `Найдено: ${lines.length}`;
-    $("kwicTable").innerHTML = lines.map(l =>
-        `<tr><td class="concordance__left">${esc(l.left)}</td><td class="concordance__word">${esc(l.word)}</td><td class="concordance__right">${esc(l.right)}</td></tr>`).join("")
-      || `<tr><td class="table__empty">Не найдено</td></tr>`;
+  const query = els.query.value.trim();
+  if (query === "") {
+    els.kwicTable.innerHTML = "";
+    els.kwicStatus.textContent = "Введите слово";
+    return;
+  }
+
+  const lines = kwic(els.textA.value, query, Number(els.contextWidth.value), els.asPrefix.checked);
+  els.kwicStatus.textContent = `Найдено: ${lines.length}`;
+
+  const bodyRows = lines.map(line => row([
+    cell(escapeHtml(line.left), "concordance__left"),
+    cell(escapeHtml(line.word), "concordance__word"),
+    cell(escapeHtml(line.right), "concordance__right"),
+  ]));
+  fillTable(els.kwicTable, null, bodyRows, "Не найдено");
 }
 
 // ---------- вкладка «Стилометрия» ----------
-function renderStyle() {
-    const s = stopSet();
-    const cl = $("cliches").value.split("\n").map(x => x.trim().toLowerCase()).filter(Boolean);
-    const A = text.value.trim() ? stylometry(text.value, s, cl) : null;
-    const B = textB.value.trim() ? stylometry(textB.value, s, cl) : null;
-    // Каждая строка таблицы: [название показателя, как достать значение из результата]
-    const rows = [
-        ["Слов", r => r.tokens],
-        ["Предложений", r => r.sentences],
-        ["Средняя длина предложения (слов)", r => fmt(r.meanLen, 1)],
-        ["Разброс длины предложений", r => fmt(r.sdLen, 1)],
-        ["Доля разных слов (весь текст)", r => fmt(r.ttr)],
-        ["Доля разных слов (первые 100)", r => fmt(r.ttr100)],
-        ["Доля стоп-слов", r => fmt(r.stopShare)],
-        ["Средняя длина слова", r => fmt(r.meanWordLen,1)],
-        ["Клише", r => r.cliches.length ? r.cliches.map(([c, n]) => `${esc(c)} (${n})`).join(", ") : "—"]
-    ];
-    if (!A && !B) { $("styleTable").innerHTML = `<tr><td class="table__empty">Нет текста</td></tr>`; return; }
-    $("styleTable").innerHTML =
-      `<tr><th>Показатель</th><th>Текст А</th>${B ? "<th>Текст Б</th>" : ""}</tr>` +
-      rows.map(([name, f]) => `<tr><td>${name}</td><td>${A ? f(A) : "—"}</td>${B ? `<td>${f(B)}</td>` : ""}</tr>`).join("");
+
+// Строки таблицы: название показателя и как достать его значение из результата stylometry()
+const STYLOMETRY_ROWS = [
+  { label: "Слов", value: result => result.tokens },
+  { label: "Предложений", value: result => result.sentences },
+  { label: "Средняя длина предложения (слов)", value: result => formatNumber(result.meanLen, 1) },
+  { label: "Разброс длины предложений", value: result => formatNumber(result.sdLen, 1) },
+  { label: "Доля разных слов (весь текст)", value: result => formatNumber(result.ttr) },
+  { label: "Доля разных слов (первые 100)", value: result => formatNumber(result.ttr100) },
+  { label: "Доля стоп-слов", value: result => formatNumber(result.stopShare) },
+  { label: "Средняя длина слова", value: result => formatNumber(result.meanWordLen, 1) },
+  { label: "Клише", value: result => formatCliches(result.cliches) },
+];
+
+// [["важно отметить", 2], …] → «важно отметить (2), …»
+function formatCliches(found) {
+  if (found.length === 0) {
+    return "—";
+  }
+  return found.map(([cliche, count]) => `${escapeHtml(cliche)} (${count})`).join(", ");
+}
+
+// Пустое поле → null: для него столбец не считаем
+function analyze(text, stopWords, cliches) {
+  if (text.trim() === "") {
+    return null;
+  }
+  return stylometry(text, stopWords, cliches);
+}
+
+function renderStylometry() {
+  const stopWords = readStopWords();
+  const cliches = readCliches();
+  const resultA = analyze(els.textA.value, stopWords, cliches);
+  const resultB = analyze(els.textB.value, stopWords, cliches);
+
+  if (!resultA && !resultB) {
+    fillTable(els.styleTable, null, [], "Нет текста");
+    return;
+  }
+
+  // столбец «Текст Б» показываем, только если второй текст есть
+  const headers = [headerCell("Показатель"), headerCell("Текст А")];
+  if (resultB) {
+    headers.push(headerCell("Текст Б"));
+  }
+  const bodyRows = STYLOMETRY_ROWS.map(({ label, value }) => {
+    const cells = [cell(label), cell(resultA ? value(resultA) : "—")];
+    if (resultB) {
+      cells.push(cell(value(resultB)));
+    }
+    return row(cells);
+  });
+  fillTable(els.styleTable, row(headers), bodyRows);
 }
 
 // ---------- вкладка «Длины слов» ----------
-function renderLen() {
-    const rows = wordLengths(tokenize(text.value));
-    $("lenTable").innerHTML =
-      `<tr><th class="table__num">Букв в слове</th><th class="table__num">Сколько слов</th></tr>` +
-      rows.map(([len, n]) => `<tr><td class="table__num">${len}</td><td class="table__num">${n}</td></tr>`).join("");
+
+function renderWordLengths() {
+  const lengths = wordLengths(tokenize(els.textA.value));
+  const headerRow = row([
+    headerCell("Букв в слове", "table__num"),
+    headerCell("Сколько слов", "table__num"),
+  ]);
+  const bodyRows = lengths.map(([length, count]) => row([
+    cell(length, "table__num"),
+    cell(count, "table__num"),
+  ]));
+  fillTable(els.lenTable, headerRow, bodyRows);
 }
 
-function renderAll() { renderFreq(); renderKwic(); renderStyle(); renderLen(); }
+function renderAll() {
+  renderFreq();
+  renderKwic();
+  renderStylometry();
+  renderWordLengths();
+}
 
-// ---------- события: кто что слушает ----------
+// ---------- обработчики событий ----------
 
-// Вкладки: нажатая кнопка получает модификатор --active, остальные теряют; то же с секциями
-document.querySelectorAll(".tabs__button").forEach(b => b.addEventListener("click", () => {
-    document.querySelectorAll(".tabs__button").forEach(x => x.classList.toggle("tabs__button--active", x === b));
-    document.querySelectorAll(".tab-panel").forEach(t => t.classList.toggle("tab-panel--active", t.id === "tab-" + b.dataset.tab));
-}));
+// Вкладка: у кнопки data-tab="freq" — секция id="tab-freq".
+// Активная кнопка и секция получают модификатор --active; aria-selected — для экранного диктора.
+function switchTab(activeButton) {
+  for (const button of els.tabButtons) {
+    const isActive = button === activeButton;
+    button.classList.toggle("tabs__button--active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  }
+  for (const panel of els.tabPanels) {
+    const isActive = panel.id === "tab-" + activeButton.dataset.tab;
+    panel.classList.toggle("tab-panel--active", isActive);
+  }
+}
 
-// Кнопки примеров: подставить текст и подходящее слово для конкорданса
-document.querySelectorAll("[data-sample]").forEach(b => b.addEventListener("click", () => {
-    text.value = SAMPLES[b.dataset.sample];
-    $("query").value = b.dataset.sample === "ru" ? "реферат" : "go";
-    renderAll();
-}));
-$("clear").addEventListener("click", () => { text.value = ""; renderAll(); text.focus(); });
+// Пример текста + подходящее слово для конкорданса
+function loadSample(language) {
+  els.textA.value = SAMPLES[language];
+  els.query.value = language === "ru" ? "реферат" : "go";
+  renderAll();
+}
 
-// input — срабатывает на каждую набранную букву; change — когда поменяли галочку или список
-["text", "textB", "stop", "cliches", "query"].forEach(id => $(id).addEventListener("input", renderAll));
-["useStop", "topN", "prefix", "width"].forEach(id => $(id).addEventListener("change", renderAll));
+function clearText() {
+  els.textA.value = "";
+  renderAll();
+  els.textA.focus();
+}
+
+// ---------- запуск ----------
+
+// Начальное заполнение: данные — из data.js
+els.version.textContent = VERSION;
+els.stopWords.value = STOP_DEFAULT;
+els.cliches.value = CLICHES_DEFAULT;
+els.textA.value = SAMPLES.ru;
+
+// Блоки «Показать код»: функция в JavaScript умеет выдать собственный исходный текст.
+// Поэтому студенты всегда видят ровно тот код, который сейчас работает.
+els.freqCode.textContent =
+  "// Слово = буквы любого алфавита (\\p{L}) подряд, можно через дефис.\n" +
+  "// Цифр и апострофа в шаблоне нет — поэтому «2004» не слово, а didn't распадается.\n" +
+  "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq;
+els.kwicCode.textContent = kwic.toString();
+els.styleCode.textContent = sentences + "\n\n" + stylometry;
+
+for (const button of els.tabButtons) {
+  button.addEventListener("click", () => switchTab(button));
+}
+for (const button of els.sampleButtons) {
+  button.addEventListener("click", () => loadSample(button.dataset.sample));
+}
+els.clearButton.addEventListener("click", clearText);
+
+// input — на каждую набранную букву; change — когда поменяли галочку или выбор в списке
+for (const field of [els.textA, els.textB, els.stopWords, els.cliches, els.query]) {
+  field.addEventListener("input", renderAll);
+}
+for (const control of [els.useStopWords, els.topN, els.asPrefix, els.contextWidth]) {
+  control.addEventListener("change", renderAll);
+}
 
 renderAll();   // первый расчёт при открытии страницы

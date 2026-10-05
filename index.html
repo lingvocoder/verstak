@@ -17,29 +17,30 @@
 
     <!-- ===== Поле для текста: общее для всех вкладок ===== -->
     <div class="panel">
-        <label for="text" class="panel__label">Текст</label>
-        <textarea id="text" class="text-field" placeholder="Вставьте текст сюда"></textarea>
+        <label for="text-a" class="panel__label">Текст</label>
+        <textarea id="text-a" class="text-field" placeholder="Вставьте текст сюда"></textarea>
         <div class="controls">
             <button data-sample="ru">Пример: русский</button>
             <button data-sample="en">Пример: английский</button>
-            <button id="clear">Очистить</button>
-            <span id="count" class="hint"></span>
+            <button id="clear-text">Очистить</button>
+            <span id="word-count" class="hint"></span>
         </div>
     </div>
 
-    <!-- ===== Переключатель вкладок. data-tab должен совпадать с id секции без «tab-» ===== -->
-    <nav class="tabs">
-        <button class="tabs__button tabs__button--active" data-tab="freq">Частоты</button>
-        <button class="tabs__button" data-tab="kwic">Конкорданс</button>
-        <button class="tabs__button" data-tab="style">Стилометрия</button>
-        <button class="tabs__button" data-tab="len">Длины слов</button>
+    <!-- ===== Переключатель вкладок. data-tab должен совпадать с id секции без «tab-».
+         role/aria-* — разметка вкладок для экранного диктора ===== -->
+    <nav class="tabs" role="tablist" aria-label="Инструменты">
+        <button class="tabs__button tabs__button--active" id="tab-button-freq" data-tab="freq" role="tab" aria-selected="true" aria-controls="tab-freq">Частоты</button>
+        <button class="tabs__button" id="tab-button-kwic" data-tab="kwic" role="tab" aria-selected="false" aria-controls="tab-kwic">Конкорданс</button>
+        <button class="tabs__button" id="tab-button-style" data-tab="style" role="tab" aria-selected="false" aria-controls="tab-style">Стилометрия</button>
+        <button class="tabs__button" id="tab-button-len" data-tab="len" role="tab" aria-selected="false" aria-controls="tab-len">Длины слов</button>
     </nav>
 
     <!-- ===== Вкладка 1. Частоты ===== -->
-    <section id="tab-freq" class="panel tab-panel tab-panel--active">
-        <label><input type="checkbox" id="useStop"> убрать стоп-слова</label>
+    <section id="tab-freq" class="panel tab-panel tab-panel--active" role="tabpanel" aria-labelledby="tab-button-freq">
+        <label><input type="checkbox" id="use-stop-words"> убрать стоп-слова</label>
         <label>показать
-            <select id="topN">
+            <select id="top-n">
                 <option>10</option>
                 <option selected>20</option>
                 <option>50</option>
@@ -48,11 +49,11 @@
         </label>
         <details>
             <summary>Список стоп-слов (можно править)</summary>
-            <textarea id="stop" class="text-field text-field--small"></textarea>
+            <textarea id="stop-words" class="text-field text-field--small"></textarea>
         </details>
-        <div id="freqStats" class="stats"></div>
+        <div id="freq-stats" class="stats"></div>
         <div class="scroll">
-            <table id="freqTable" class="table"></table>
+            <table id="freq-table" class="table"></table>
         </div>
         <details>
             <summary>Показать код</summary>
@@ -61,21 +62,21 @@
     </section>
 
     <!-- ===== Вкладка 2. Конкорданс ===== -->
-    <section id="tab-kwic" class="panel tab-panel">
+    <section id="tab-kwic" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-kwic">
         <div class="controls">
-            <input type="text" id="query" placeholder="Слово" value="реферат">
-            <label><input type="checkbox" id="prefix"> как начало слова</label>
+            <input type="text" id="kwic-query" placeholder="Слово" value="реферат">
+            <label><input type="checkbox" id="kwic-prefix"> как начало слова</label>
             <label>контекст
-                <select id="width">
+                <select id="kwic-width">
                     <option>20</option>
                     <option selected>35</option>
                     <option>50</option>
                 </select> знаков
             </label>
         </div>
-        <div id="kwicStats" class="hint hint--spaced"></div>
+        <div id="kwic-status" class="hint hint--spaced"></div>
         <div class="scroll">
-            <table id="kwicTable" class="table concordance"></table>
+            <table id="kwic-table" class="table concordance"></table>
         </div>
         <details>
             <summary>Показать код</summary>
@@ -84,15 +85,15 @@
     </section>
 
     <!-- ===== Вкладка 3. Стилометрия ===== -->
-    <section id="tab-style" class="panel tab-panel">
+    <section id="tab-style" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-style">
         <p class="hint">Текст А — поле вверху. Текст Б — необязательно, для сравнения.</p>
-        <textarea id="textB" class="text-field text-field--small" placeholder="Текст Б (необязательно)"></textarea>
+        <textarea id="text-b" class="text-field text-field--small" placeholder="Текст Б (необязательно)"></textarea>
         <details>
             <summary>Список клише (можно править)</summary>
             <textarea id="cliches" class="text-field text-field--small"></textarea>
         </details>
         <div class="scroll">
-            <table id="styleTable" class="table table--spaced"></table>
+            <table id="style-table" class="table table--spaced"></table>
         </div>
         <details>
             <summary>Показать код</summary>
@@ -101,9 +102,9 @@
     </section>
 
     <!-- ===== Вкладка 4. Длины слов ===== -->
-    <section id="tab-len" class="panel tab-panel">
+    <section id="tab-len" class="panel tab-panel" role="tabpanel" aria-labelledby="tab-button-len">
         <div class="scroll">
-            <table id="lenTable" class="table"></table>
+            <table id="len-table" class="table"></table>
         </div>
     </section>
 </div>
