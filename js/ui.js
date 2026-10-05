@@ -305,8 +305,8 @@ els.textA.value = SAMPLES.ru;
 // Блоки «Показать код»: функция в JavaScript умеет выдать собственный исходный текст.
 // Поэтому студенты всегда видят ровно тот код, который сейчас работает.
 showCode(els.freqCode,
-  "// Слово = буквы любого алфавита (\\p{L}) подряд, можно через дефис.\n" +
-  "// Цифр и апострофа в шаблоне нет — поэтому «2004» не слово, а didn't распадается.\n" +
+  "// Шаблон слова. Разбор по частям —\n" +
+  "// внутри tokenize.\n" +
   "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq);
 showCode(els.kwicCode, kwic.toString());
 showCode(els.styleCode, sentences + "\n\n" + stylometry);

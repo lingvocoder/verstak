@@ -8,16 +8,37 @@
 //  Именно этот код ты видишь под кнопкой «Показать код».
 // =====================================================================
 
-// Слово = буквы любого алфавита (\p{L}) подряд; внутри можно дефис: «по-моему».
-// Цифр и апострофа в шаблоне нет — поэтому «2004» не слово, а didn't распадается на didn + t.
-// Флаги: g — искать все совпадения, u — понимать Юникод (без него \p{L} не работает).
-
+// Шаблон слова. Разбор по частям — в комментариях внутри tokenize:
+// студенты видят только код функций, а не комментарии над ними.
 const WORD = /\p{L}+(?:-\p{L}+)*/gu;
 
 function tokenize(text) {
-    // все буквы делаем маленькими и вытаскиваем куски по шаблону WORD
-    // (как re.findall в Python); если слов нет — пустой список
-    return text.toLowerCase().match(WORD) || [];
+  // Шаблон WORD по частям.
+  // \p{L}+ — одна или больше букв
+  // любого алфавита.
+  // (?:-\p{L}+)* — дальше 0 или
+  // больше раз «дефис + буквы»:
+  // по-моему.
+  // g — искать все совпадения.
+  // u — Юникод: без него \p{L}
+  // не работает.
+  // Цифр и апострофа в шаблоне нет:
+  // «2004» — не слово,
+  // didn't → didn + t.
+
+  // все буквы — маленькие:
+  // «Реферат» и «реферат» — одно
+  const lower = text.toLowerCase();
+  // все куски по шаблону,
+  // как в Python:
+  // re.findall(WORD, lower)
+  const words = lower.match(WORD);
+  // если слов нет, match возвращает
+  // null, а не пустой список
+  if (words === null) {
+    return [];
+  }
+  return words;
 }
 
 function freq(tokens) {
@@ -25,22 +46,29 @@ function freq(tokens) {
   // (Map — как dict в Python)
   const counts = new Map();
   for (const token of tokens) {
-    // как в Python: if token not in counts
+    // как в Python:
+    // if token not in counts
     if (!counts.has(token)) {
       counts.set(token, 0);
     }
-    // как в Python: counts[token] += 1
-    counts.set(token, counts.get(token) + 1);
+    // как в Python:
+    // counts[token] += 1
+    const count = counts.get(token);
+    counts.set(token, count + 1);
   }
-  // пары [слово, частота]
-  // как в Python: list(counts.items())
+  // пары [слово, частота],
+  // как в Python:
+  // list(counts.items())
   const pairs = Array.from(counts);
-  // по убыванию частоты, как в Python:
-  // sorted(pairs, key=lambda p: p[1], reverse=True)
+  // по убыванию частоты,
+  // как в Python: sorted(pairs,
+  //   key=lambda p: p[1],
+  //   reverse=True)
   // sort сравнивает две пары a и b:
-  // если b[1] - a[1] больше нуля, b встаёт раньше.
-  // При равной частоте слова остаются
-  // в порядке первого появления в тексте.
+  // если b[1] - a[1] больше нуля,
+  // b встаёт раньше.
+  // При равной частоте слова идут
+  // в порядке появления в тексте.
   pairs.sort((a, b) => b[1] - a[1]);
   return pairs;
 }
@@ -67,10 +95,33 @@ function kwic(text, query, width, asPrefix) {
     return lines;
 }
 
-// Предложение кончается на . ! ? … перед пробелом.
 function sentences(text) {
-    // режем по пробелу, перед которым стоит . ! ? или … — поэтому «т. е.» даёт лишние «предложения»
-    return text.split(/(?<=[.!?…])\s+/).map(s => s.trim()).filter(Boolean);
+  // Предложение кончается
+  // на . ! ? или … перед пробелом.
+  // Шаблон разреза cut по частям.
+  // \s+ — пробелы и переносы строк.
+  // (?<=[.!?…]) — «посмотри назад»:
+  // перед пробелом стоит знак
+  // конца. Знак проверяется,
+  // но не вырезается и остаётся
+  // в предложении.
+  // Ловушка: «т. е.» тоже даёт
+  // разрез — машина не знает
+  // сокращений.
+  const cut = /(?<=[.!?…])\s+/;
+  const parts = text.split(cut);
+  // убираем пробелы по краям
+  // и пустые куски, как в Python:
+  // [p.strip() for p in parts
+  //  if p.strip()]
+  const result = [];
+  for (const part of parts) {
+    const sentence = part.trim();
+    if (sentence !== "") {
+      result.push(sentence);
+    }
+  }
+  return result;
 }
 
 function stylometry(text, stopSet, cliches) {
