@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,36 +8,35 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div class="wrap">
-    <header>
-        <h1>Лингвистический верстак</h1>
+<div class="page">
+    <header class="page__header">
+        <h1 class="page__title">Лингвистический верстак</h1>
         <!-- Номер версии подставляется из js/data.js (константа VERSION) -->
-        <p>Версия <span id="version"></span> · частоты · конкорданс · стилометрия</p>
+        <p class="page__subtitle">Версия <span id="version"></span> · частоты · конкорданс · стилометрия</p>
     </header>
 
     <!-- ===== Поле для текста: общее для всех вкладок ===== -->
     <div class="panel">
-        <label for="text" class="big">Текст</label>
-        <textarea id="text" placeholder="Вставьте текст сюда"></textarea>
-        <div class="row">
+        <label for="text" class="panel__label">Текст</label>
+        <textarea id="text" class="text-field" placeholder="Вставьте текст сюда"></textarea>
+        <div class="controls">
             <button data-sample="ru">Пример: русский</button>
             <button data-sample="en">Пример: английский</button>
             <button id="clear">Очистить</button>
-            <span id="count" class="muted"></span>
+            <span id="count" class="hint"></span>
         </div>
     </div>
 
     <!-- ===== Переключатель вкладок. data-tab должен совпадать с id секции без «tab-» ===== -->
     <nav class="tabs">
-        <button data-tab="freq" class="on">Частоты</button>
-        <button data-tab="kwic">Конкорданс</button>
-        <button data-tab="style">Стилометрия</button>
-        <button data-tab="len">Длины слов</button>
+        <button class="tabs__button tabs__button--active" data-tab="freq">Частоты</button>
+        <button class="tabs__button" data-tab="kwic">Конкорданс</button>
+        <button class="tabs__button" data-tab="style">Стилометрия</button>
+        <button class="tabs__button" data-tab="len">Длины слов</button>
     </nav>
 
     <!-- ===== Вкладка 1. Частоты ===== -->
-    <section id="tab-freq" class="tab on panel">
-        <div class="row"></div>
+    <section id="tab-freq" class="panel tab-panel tab-panel--active">
         <label><input type="checkbox" id="useStop"> убрать стоп-слова</label>
         <label>показать
             <select id="topN">
@@ -49,11 +48,11 @@
         </label>
         <details>
             <summary>Список стоп-слов (можно править)</summary>
-            <textarea id="stop" class="small"></textarea>
+            <textarea id="stop" class="text-field text-field--small"></textarea>
         </details>
         <div id="freqStats" class="stats"></div>
         <div class="scroll">
-            <table id="freqTable"></table>
+            <table id="freqTable" class="table"></table>
         </div>
         <details>
             <summary>Показать код</summary>
@@ -62,8 +61,8 @@
     </section>
 
     <!-- ===== Вкладка 2. Конкорданс ===== -->
-    <section id="tab-kwic" class="tab panel">
-        <div class="row">
+    <section id="tab-kwic" class="panel tab-panel">
+        <div class="controls">
             <input type="text" id="query" placeholder="Слово" value="реферат">
             <label><input type="checkbox" id="prefix"> как начало слова</label>
             <label>контекст
@@ -74,9 +73,9 @@
                 </select> знаков
             </label>
         </div>
-        <div id="kwicStats" class="muted" style="margin-top:8px"></div>
+        <div id="kwicStats" class="hint hint--spaced"></div>
         <div class="scroll">
-            <table id="kwicTable" class="kwic"></table>
+            <table id="kwicTable" class="table concordance"></table>
         </div>
         <details>
             <summary>Показать код</summary>
@@ -85,15 +84,15 @@
     </section>
 
     <!-- ===== Вкладка 3. Стилометрия ===== -->
-    <section id="tab-style" class="tab panel">
-        <p class="muted">Текст А — поле вверху. Текст Б — необязательно, для сравнения.</p>
-        <textarea id="textB" class="small" placeholder="Текст Б (необязательно)"></textarea>
+    <section id="tab-style" class="panel tab-panel">
+        <p class="hint">Текст А — поле вверху. Текст Б — необязательно, для сравнения.</p>
+        <textarea id="textB" class="text-field text-field--small" placeholder="Текст Б (необязательно)"></textarea>
         <details>
             <summary>Список клише (можно править)</summary>
-            <textarea id="cliches" class="small"></textarea>
+            <textarea id="cliches" class="text-field text-field--small"></textarea>
         </details>
         <div class="scroll">
-            <table id="styleTable" style="margin-top:10px"></table>
+            <table id="styleTable" class="table table--spaced"></table>
         </div>
         <details>
             <summary>Показать код</summary>
@@ -102,8 +101,10 @@
     </section>
 
     <!-- ===== Вкладка 4. Длины слов ===== -->
-    <section id="tab-len" class="tab panel">
-        <div class="scroll"><table id="lenTable"></table></div>
+    <section id="tab-len" class="panel tab-panel">
+        <div class="scroll">
+            <table id="lenTable" class="table"></table>
+        </div>
     </section>
 </div>
 

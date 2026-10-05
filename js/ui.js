@@ -40,13 +40,13 @@ function renderFreq() {
     const rows = freq(tokens).slice(0, +$("topN").value);          // +"20" → 20: строка в число
     $("count").textContent = all + " слов";
     $("freqStats").innerHTML =
-      `<div class="stat"><b>${all}</b>словоупотреблений</div>` +
-      `<div class="stat"><b>${types}</b>разных словоформ</div>` +
-      `<div class="stat"><b>${fmt(types / all)}</b>доля разных (TTR)</div>`;
-    if (!rows.length) { $("freqTable").innerHTML = `<tr><td class="empty">Нет слов</td></tr>`; return; }
+      `<div class="stats__item"><span class="stats__value">${all}</span><span class="stats__label">словоупотреблений</span></div>` +
+      `<div class="stats__item"><span class="stats__value">${types}</span><span class="stats__label">разных словоформ</span></div>` +
+      `<div class="stats__item"><span class="stats__value">${fmt(types / all)}</span><span class="stats__label">доля разных (TTR)</span></div>`;
+    if (!rows.length) { $("freqTable").innerHTML = `<tr><td class="table__empty">Нет слов</td></tr>`; return; }
     $("freqTable").innerHTML =
-      `<tr><th class="num">Ранг</th><th>Словоформа</th><th class="num">Частота</th><th class="num">Ранг × частота</th></tr>` +
-      rows.map(([w, n], i) => `<tr><td class="num">${i + 1}</td><td>${esc(w)}</td><td class="num">${n}</td><td class="num">${(i + 1) * n}</td></tr>`).join("");
+      `<tr><th class="table__num">Ранг</th><th>Словоформа</th><th class="table__num">Частота</th><th class="table__num">Ранг × частота</th></tr>` +
+      rows.map(([w, n], i) => `<tr><td class="table__num">${i + 1}</td><td>${esc(w)}</td><td class="table__num">${n}</td><td class="table__num">${(i + 1) * n}</td></tr>`).join("");
 }
 
 // ---------- вкладка «Конкорданс» ----------
@@ -56,8 +56,8 @@ function renderKwic() {
     const lines = kwic(text.value, q, +$("width").value, $("prefix").checked);
     $("kwicStats").textContent = `Найдено: ${lines.length}`;
     $("kwicTable").innerHTML = lines.map(l =>
-        `<tr><td class="left">${esc(l.left)}</td><td class="kw">${esc(l.word)}</td><td class="right">${esc(l.right)}</td></tr>`).join("")
-      || `<tr><td class="empty">Не найдено</td></tr>`;
+        `<tr><td class="concordance__left">${esc(l.left)}</td><td class="concordance__word">${esc(l.word)}</td><td class="concordance__right">${esc(l.right)}</td></tr>`).join("")
+      || `<tr><td class="table__empty">Не найдено</td></tr>`;
 }
 
 // ---------- вкладка «Стилометрия» ----------
@@ -78,7 +78,7 @@ function renderStyle() {
         ["Средняя длина слова", r => fmt(r.meanWordLen,1)],
         ["Клише", r => r.cliches.length ? r.cliches.map(([c, n]) => `${esc(c)} (${n})`).join(", ") : "—"]
     ];
-    if (!A && !B) { $("styleTable").innerHTML = `<tr><td class="empty">Нет текста</td></tr>`; return; }
+    if (!A && !B) { $("styleTable").innerHTML = `<tr><td class="table__empty">Нет текста</td></tr>`; return; }
     $("styleTable").innerHTML =
       `<tr><th>Показатель</th><th>Текст А</th>${B ? "<th>Текст Б</th>" : ""}</tr>` +
       rows.map(([name, f]) => `<tr><td>${name}</td><td>${A ? f(A) : "—"}</td>${B ? `<td>${f(B)}</td>` : ""}</tr>`).join("");
@@ -88,18 +88,18 @@ function renderStyle() {
 function renderLen() {
     const rows = wordLengths(tokenize(text.value));
     $("lenTable").innerHTML =
-      `<tr><th class="num">Букв в слове</th><th class="num">Сколько слов</th></tr>` +
-      rows.map(([len, n]) => `<tr><td class="num">${len}</td><td class="num">${n}</td></tr>`).join("");
+      `<tr><th class="table__num">Букв в слове</th><th class="table__num">Сколько слов</th></tr>` +
+      rows.map(([len, n]) => `<tr><td class="table__num">${len}</td><td class="table__num">${n}</td></tr>`).join("");
 }
 
 function renderAll() { renderFreq(); renderKwic(); renderStyle(); renderLen(); }
 
 // ---------- события: кто что слушает ----------
 
-// Вкладки: нажатая кнопка получает класс on, остальные теряют; то же с секциями
-document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
-    document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
-    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.id === "tab-" + b.dataset.tab));
+// Вкладки: нажатая кнопка получает модификатор --active, остальные теряют; то же с секциями
+document.querySelectorAll(".tabs__button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".tabs__button").forEach(x => x.classList.toggle("tabs__button--active", x === b));
+    document.querySelectorAll(".tab-panel").forEach(t => t.classList.toggle("tab-panel--active", t.id === "tab-" + b.dataset.tab));
 }));
 
 // Кнопки примеров: подставить текст и подходящее слово для конкорданса
