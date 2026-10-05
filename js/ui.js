@@ -299,6 +299,7 @@ function clearText() {
 
 // Начальное заполнение: данные — из data.js
 els.version.textContent = VERSION;
+document.title = `Лингвистический верстак ${VERSION}`;
 els.stopWords.value = STOP_DEFAULT;
 els.cliches.value = CLICHES_DEFAULT;
 els.textA.value = SAMPLES.ru;
