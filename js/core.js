@@ -292,9 +292,15 @@ function countCliches(
   return found;
 }
 
-// Сколько слов каждой длины: [[1, 5], [2, 12], ...] — «кривая Менденхолла» (1887)
 function wordLengths(tokens) {
-  // словарь «длина слова → сколько таких слов»
+  // Сколько слов каждой длины:
+  // [[1, 5], [2, 12], …].
+  // «Кривая Менденхолла» (1887):
+  // у разных авторов она разная.
+  // Слова берутся из tokenize —
+  // его код на вкладке «Частоты».
+
+  // словарь «длина → сколько слов»
   // (тот же приём, что в freq)
   const counts = new Map();
   for (const token of tokens) {
@@ -303,10 +309,13 @@ function wordLengths(tokens) {
     if (!counts.has(length)) {
       counts.set(length, 0);
     }
-    counts.set(length, counts.get(length) + 1);
+    const n = counts.get(length);
+    counts.set(length, n + 1);
   }
-  // пары [длина, сколько слов] по возрастанию
-  // длины, как в Python: sorted(counts.items())
+  // пары [длина, сколько слов]
+  // по возрастанию длины,
+  // как в Python:
+  // sorted(counts.items())
   const pairs = Array.from(counts);
   pairs.sort((a, b) => a[0] - b[0]);
   return pairs;

@@ -45,6 +45,7 @@ const els = {
   styleCode: byId("code-style"),
   // «Длины слов»
   lenTable: byId("len-table"),
+  lenCode: byId("code-len"),
 };
 
 // ---------- помощники ----------
@@ -315,6 +316,7 @@ const stylometryCode = [
   typeTokenRatio, stopWordShare, countCliches,
 ];
 showCode(els.styleCode, stylometryCode.join("\n\n"));
+showCode(els.lenCode, wordLengths.toString());
 
 for (const button of els.tabButtons) {
   button.addEventListener("click", () => switchTab(button));
