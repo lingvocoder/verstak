@@ -21,15 +21,28 @@ function tokenize(text) {
 }
 
 function freq(tokens) {
-    const counts = {}   //словарь «слово → сколько раз» (как dict в Python)
-    for (const token of tokens) {    // идём по всем словам текста
-        if (!counts.hasOwnProperty(token)) { //если не встречали в словаре
-            counts[token] = 0;    //не встречали — заводим счётчик с нуля
-        }
-        counts[token]++; //в любом случае прибавляем 1 (новое слово станет 1)
+  // словарь «слово → сколько раз»
+  // (Map — как dict в Python)
+  const counts = new Map();
+  for (const token of tokens) {
+    // как в Python: if token not in counts
+    if (!counts.has(token)) {
+      counts.set(token, 0);
     }
-    // превращаем в список пар [слово, частота] и сортируем по убыванию частоты
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    // как в Python: counts[token] += 1
+    counts.set(token, counts.get(token) + 1);
+  }
+  // пары [слово, частота]
+  // как в Python: list(counts.items())
+  const pairs = Array.from(counts);
+  // по убыванию частоты, как в Python:
+  // sorted(pairs, key=lambda p: p[1], reverse=True)
+  // sort сравнивает две пары a и b:
+  // если b[1] - a[1] больше нуля, b встаёт раньше.
+  // При равной частоте слова остаются
+  // в порядке первого появления в тексте.
+  pairs.sort((a, b) => b[1] - a[1]);
+  return pairs;
 }
 
 function kwic(text, query, width, asPrefix) {
@@ -88,15 +101,20 @@ function stylometry(text, stopSet, cliches) {
 
 // Сколько слов каждой длины: [[1, 5], [2, 12], ...] — «кривая Менденхолла» (1887)
 function wordLengths(tokens) {
-    const counts = {};                         // длина → сколько слов такой длины
-
-    for (const token of tokens) {
-        if (!counts.hasOwnProperty(token.length)) {
-            counts[token.length] = 0;
-        }
-        counts[token.length]++;
+  // словарь «длина слова → сколько таких слов»
+  // (тот же приём, что в freq)
+  const counts = new Map();
+  for (const token of tokens) {
+    // сколько букв в слове
+    const length = token.length;
+    if (!counts.has(length)) {
+      counts.set(length, 0);
     }
-    return Object.entries(counts)              // ключи объекта — строки, поэтому +len делает их числами
-      .map(([len, n]) => [+len, n])
-      .sort((a, b) => a[0] - b[0]);            // по возрастанию длины
+    counts.set(length, counts.get(length) + 1);
+  }
+  // пары [длина, сколько слов] по возрастанию
+  // длины, как в Python: sorted(counts.items())
+  const pairs = Array.from(counts);
+  pairs.sort((a, b) => a[0] - b[0]);
+  return pairs;
 }

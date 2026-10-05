@@ -78,6 +78,21 @@ function readCliches() {
     .filter(line => line !== "");
 }
 
+// Исходный текст функции → блок «Показать код».
+// Каждая строка — отдельный блок со своим отступом (--indent): если строка не влезает
+// в ширину телефона, её продолжение встаёт под её же начало, а не к левому краю.
+function showCode(pre, source) {
+  pre.innerHTML = source
+    .split("\n")
+    .map(line => {
+      const code = line.trimStart();
+      const indent = line.length - code.length;
+      // пустой строке нужен хотя бы пробел, иначе у неё не будет высоты
+      return `<span class="code-line" style="--indent: ${indent}ch">${escapeHtml(code) || " "}</span>`;
+    })
+    .join("");
+}
+
 // ---------- сборка таблиц ----------
 // Содержимое ячеек — уже готовый HTML: текст пользователя экранируем до того, как передать сюда.
 
@@ -289,12 +304,12 @@ els.textA.value = SAMPLES.ru;
 
 // Блоки «Показать код»: функция в JavaScript умеет выдать собственный исходный текст.
 // Поэтому студенты всегда видят ровно тот код, который сейчас работает.
-els.freqCode.textContent =
+showCode(els.freqCode,
   "// Слово = буквы любого алфавита (\\p{L}) подряд, можно через дефис.\n" +
   "// Цифр и апострофа в шаблоне нет — поэтому «2004» не слово, а didn't распадается.\n" +
-  "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq;
-els.kwicCode.textContent = kwic.toString();
-els.styleCode.textContent = sentences + "\n\n" + stylometry;
+  "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq);
+showCode(els.kwicCode, kwic.toString());
+showCode(els.styleCode, sentences + "\n\n" + stylometry);
 
 for (const button of els.tabButtons) {
   button.addEventListener("click", () => switchTab(button));

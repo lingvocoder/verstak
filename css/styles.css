@@ -104,6 +104,16 @@ pre {
     padding: 10px;
     overflow-x: auto;
     font-size: 0.9rem;
+    /* длинные строки кода переносятся: на телефоне не нужно листать вбок */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* на телефоне шрифт кода мельче: в строку влезает больше знаков */
+@media (max-width: 480px) {
+    pre {
+        font-size: 0.8rem;
+    }
 }
 
 /* ---------- блоки (БЭМ: блок__элемент--модификатор) ---------- */
@@ -271,4 +281,12 @@ pre {
     background: var(--mark);
     color: var(--ink);
     text-align: center;
+}
+
+/* code-line — строка в «Показать код». Висячий отступ: первая строка начинается
+   с отступа --indent, а перенесённое продолжение — на 2 знака правее него */
+.code-line {
+    display: block;
+    padding-left: calc(var(--indent) + 2ch);
+    text-indent: -2ch;
 }
