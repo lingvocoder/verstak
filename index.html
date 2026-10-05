@@ -38,15 +38,17 @@
 
     <!-- ===== Вкладка 1. Частоты ===== -->
     <section id="tab-freq" class="panel tab-panel tab-panel--active" role="tabpanel" aria-labelledby="tab-button-freq">
-        <label><input type="checkbox" id="use-stop-words"> убрать стоп-слова</label>
-        <label>показать
-            <select id="top-n">
-                <option>10</option>
-                <option selected>20</option>
-                <option>50</option>
-                <option>100</option>
-            </select>
-        </label>
+        <div class="controls">
+            <label><input type="checkbox" id="use-stop-words"> убрать стоп-слова</label>
+            <label>показать
+                <select id="top-n">
+                    <option>10</option>
+                    <option selected>20</option>
+                    <option>50</option>
+                    <option>100</option>
+                </select>
+            </label>
+        </div>
         <details>
             <summary>Список стоп-слов (можно править)</summary>
             <textarea id="stop-words" class="text-field text-field--small"></textarea>
