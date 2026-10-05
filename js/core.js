@@ -161,30 +161,135 @@ function sentences(text) {
   return result;
 }
 
-function stylometry(text, stopSet, cliches) {
-    const sents = sentences(text);              // режем один раз и берём дважды: длины и количество
-    const lens = sents.map(s => tokenize(s).length).filter(n => n > 0); // длина каждого предложения в словах
-    const tokens = tokenize(text);
-    const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
-    const sd = Math.sqrt(lens.reduce((a, b) => a + (b - mean) ** 2, 0) / lens.length); // разброс (стандартное отклонение)
-    const meanWordLen = tokens.reduce((acc, t) => acc + t.length, 0) / tokens.length; /// средняя длина слова в буквах
-    const firstHundred = tokens.slice(0, 100);   // TTR зависит от длины, поэтому считаем ещё и на первых 100 словах
-    const low = text.toLowerCase();
+function stylometry(
+  text, stopSet, cliches
+) {
+  const tokens = tokenize(text);
+  const sents = sentences(text);
 
-    return {
-        tokens: tokens.length,                  // всего слов
-        sentences: sents.length,                // сколько «предложений» нашла машина
-        meanLen: mean,
-        sdLen: sd,
-        ttr: new Set(tokens).size / tokens.length,
-        ttr100: new Set(firstHundred).size / firstHundred.length,
-        stopShare: tokens.filter(t => stopSet.has(t)).length / tokens.length,
-        meanWordLen: meanWordLen,
-        // клише: режем текст по клише — кусков на 1 больше, чем вхождений
-        cliches: cliches.map(c => [c, low.split(c).length - 1]).filter(([, n]) => n > 0),
-
+  // длина каждого предложения
+  // в словах. «Предложения» без
+  // слов (например, «2004.»)
+  // не считаем
+  const lens = [];
+  for (const sent of sents) {
+    const words = tokenize(sent);
+    if (words.length > 0) {
+      lens.push(words.length);
     }
+  }
 
+  // длина каждого слова в буквах
+  const wordLens = tokens.map(
+    token => token.length
+  );
+
+  // TTR зависит от длины текста,
+  // поэтому считаем его ещё и на
+  // первых 100 словах
+  const first100 =
+    tokens.slice(0, 100);
+  const ttr100 =
+    typeTokenRatio(first100);
+
+  const stop =
+    stopWordShare(tokens, stopSet);
+  const found =
+    countCliches(text, cliches);
+
+  // результат — словарь,
+  // как dict в Python
+  return {
+    // всего слов
+    tokens: tokens.length,
+    // сколько «предложений» нашла
+    // машина (с ловушкой «т. е.»)
+    sentences: sents.length,
+    // средняя длина предложения
+    meanLen: average(lens),
+    // разброс длины предложений
+    sdLen: standardDeviation(lens),
+    // доля разных словоформ
+    ttr: typeTokenRatio(tokens),
+    ttr100: ttr100,
+    // доля стоп-слов
+    stopShare: stop,
+    // средняя длина слова в буквах
+    meanWordLen: average(wordLens),
+    // найденные клише и их число
+    cliches: found,
+  };
+}
+
+function average(values) {
+  // среднее арифметическое,
+  // как statistics.mean в Python
+  let sum = 0;
+  for (const value of values) {
+    sum = sum + value;
+  }
+  return sum / values.length;
+}
+
+function standardDeviation(values) {
+  // разброс вокруг среднего,
+  // как statistics.pstdev в Python:
+  // делим на n, а не на n - 1
+  const mean = average(values);
+  // квадрат отклонения каждого
+  // числа от среднего
+  const squares = [];
+  for (const value of values) {
+    const diff = value - mean;
+    squares.push(diff * diff);
+  }
+  // средний квадрат отклонения —
+  // дисперсия; разброс — корень
+  // из неё
+  const variance = average(squares);
+  return Math.sqrt(variance);
+}
+
+function typeTokenRatio(tokens) {
+  // TTR = разных словоформ / всего,
+  // как в Python:
+  // len(set(tokens)) / len(tokens)
+  const types = new Set(tokens);
+  return types.size / tokens.length;
+}
+
+function stopWordShare(
+  tokens, stopSet
+) {
+  // какая доля слов текста —
+  // стоп-слова («и», «в», «the»…)
+  let count = 0;
+  for (const token of tokens) {
+    if (stopSet.has(token)) {
+      count = count + 1;
+    }
+  }
+  return count / tokens.length;
+}
+
+function countCliches(
+  text, cliches
+) {
+  // клише ищем без учёта регистра
+  const low = text.toLowerCase();
+  const found = [];
+  for (const cliche of cliches) {
+    // режем текст по клише: кусков
+    // на 1 больше, чем вхождений.
+    // Как в Python: low.count(…)
+    const parts = low.split(cliche);
+    const count = parts.length - 1;
+    // отсутствующие не выводим
+    if (count > 0) {
+      found.push([cliche, count]);
+    }
+  }
+  return found;
 }
 
 // Сколько слов каждой длины: [[1, 5], [2, 12], ...] — «кривая Менденхолла» (1887)

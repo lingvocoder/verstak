@@ -309,7 +309,12 @@ showCode(els.freqCode,
   "// внутри tokenize.\n" +
   "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq);
 showCode(els.kwicCode, kwic.toString());
-showCode(els.styleCode, sentences + "\n\n" + stylometry);
+// сверху — что считается, ниже — помощники, которые считают
+const stylometryCode = [
+  sentences, stylometry, average, standardDeviation,
+  typeTokenRatio, stopWordShare, countCliches,
+];
+showCode(els.styleCode, stylometryCode.join("\n\n"));
 
 for (const button of els.tabButtons) {
   button.addEventListener("click", () => switchTab(button));
