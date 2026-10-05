@@ -73,26 +73,63 @@ function freq(tokens) {
   return pairs;
 }
 
-function kwic(text, query, width, asPrefix) {
-    const q = query.toLowerCase();
-    const lines = [];
-    for (const word of text.matchAll(WORD)) {
-        // word — найденное совпадение (как re.Match в Python): word[0] — само слово, word.index — где оно стоит.
-        // w — то же слово маленькими буквами, только для сравнения с запросом; позиции у него нет.
-        const w = word[0].toLowerCase();
-        // совпадение: всё слово целиком или (с галочкой) только начало слова
-        const hit = asPrefix ? w.startsWith(q) : w === q;
-        if (hit) {                      // вырезаем width знаков слева и справа
-            const start = word.index;
-            const end = word.index + word[0].length;
-            lines.push({
-                left: text.slice(Math.max(0, start - width), start),
-                word: word[0],          // слово как в тексте, с исходными заглавными
-                right: text.slice(end, end + width)
-            });
-        }
+function kwic(
+  text, query, width, asPrefix
+) {
+  // Конкорданс (KWIC): каждое
+  // вхождение query и по width
+  // знаков слева и справа от него.
+  // Контекст режем по знакам, а не
+  // по словам: края могут обрезать
+  // слово. Так задумано.
+  const target =
+    query.toLowerCase();
+  const lines = [];
+  // все совпадения с шаблоном WORD,
+  // как re.finditer в Python
+  const found = text.matchAll(WORD);
+  for (const match of found) {
+    // match[0] — само слово,
+    // match.index — где оно стоит
+    const word = match[0];
+    const start = match.index;
+    const end = start + word.length;
+    // с запросом сравниваем
+    // маленькими буквами
+    const low = word.toLowerCase();
+    let hit;
+    if (asPrefix) {
+      // галочка «как начало слова»,
+      // как в Python: startswith
+      hit = low.startsWith(target);
+    } else {
+      hit = low === target;
     }
-    return lines;
+    // не то слово — к следующему
+    if (!hit) {
+      continue;
+    }
+    // начало левого контекста;
+    // не меньше 0 (начало текста):
+    // slice(-5) считал бы с конца
+    let from = start - width;
+    if (from < 0) {
+      from = 0;
+    }
+    // как text[from:start] в Python
+    const left =
+      text.slice(from, start);
+    const right =
+      text.slice(end, end + width);
+    // строка конкорданса — словарь,
+    // как dict в Python
+    lines.push({
+      left: left,
+      word: word,
+      right: right,
+    });
+  }
+  return lines;
 }
 
 function sentences(text) {
