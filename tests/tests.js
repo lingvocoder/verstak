@@ -60,7 +60,24 @@ check("клише: без учёта регистра, ненайденные н
 // ---------- вывод результатов на страницу ----------
 const failed = results.filter(r => !r.ok).length;
 const summary = document.getElementById("summary");
-summary.textContent = failed ? `Провалено: ${failed} из ${results.length}` : `Все ${results.length} тестов пройдены`;
+// Слово после числа: 1 тест, 2 теста, 5 тестов; 11–14 — всегда «тестов»
+function plural(n, one, few, many) {
+  const lastTwo = n % 100;
+  const last = n % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) {
+    return many;
+  }
+  if (last === 1) {
+    return one;
+  }
+  if (last >= 2 && last <= 4) {
+    return few;
+  }
+  return many;
+}
+const total = results.length;
+const testWord = plural(total, "тест", "теста", "тестов");
+summary.textContent = failed ? `Провалено: ${failed} из ${total}` : `Все ${total} ${testWord} пройдены`;
 summary.className = failed ? "bad" : "ok";
 document.getElementById("list").innerHTML = results.map(r => r.ok
   ? `<li class="ok">✓ ${r.name}</li>`
