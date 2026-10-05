@@ -285,7 +285,7 @@ function switchTab(activeButton) {
 // Пример текста + подходящее слово для конкорданса
 function loadSample(language) {
   els.textA.value = SAMPLES[language];
-  els.query.value = language === "ru" ? "реферат" : "go";
+  els.query.value = SAMPLE_QUERIES[language];
   renderAll();
 }
 
@@ -302,6 +302,7 @@ els.version.textContent = VERSION;
 els.stopWords.value = STOP_DEFAULT;
 els.cliches.value = CLICHES_DEFAULT;
 els.textA.value = SAMPLES.ru;
+els.query.value = SAMPLE_QUERIES.ru;
 
 // Блоки «Показать код»: функция в JavaScript умеет выдать собственный исходный текст.
 // Поэтому студенты всегда видят ровно тот код, который сейчас работает.

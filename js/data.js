@@ -18,6 +18,13 @@ const SAMPLES = {
     en: "The model went through the text and summarised it. It goes through every text the same way: it counts words. Words that belong together are counted separately: go, goes, went, gone. The summary was short, but was it true? The author didn't claim the effect was real. The summary did. It is important to note that a summary plays a key role in reading.",
 }
 
+// Слово для конкорданса, которое подставляется вместе с примером.
+// «реферат» — 3 вхождения целиком и 6 как начало слова; go — одна из форм go/goes/went/gone.
+const SAMPLE_QUERIES = {
+    ru: "реферат",
+    en: "go",
+};
+
 // Слова, которые кнопкой «убрать стоп-слова» выбрасываются из частотного списка.
 // Русские и английские вперемешку. Пользователь может править список прямо на странице.
 
