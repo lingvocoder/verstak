@@ -187,6 +187,22 @@ pre {
     margin-top: 8px;
 }
 
+/* на телефоне кнопки под текстом — столбиком на всю ширину: одинаковые и легко попасть пальцем.
+   «Очистить» стирает текст, поэтому отодвинута от примеров */
+@media (max-width: 480px) {
+    .controls--stack {
+        display: grid;
+    }
+
+    .controls--stack button {
+        width: 100%;
+    }
+
+    .controls__apart {
+        margin-top: 8px;
+    }
+}
+
 /* hint — серая подсказка или счётчик */
 .hint {
     color: var(--muted);
@@ -203,6 +219,14 @@ pre {
     gap: 6px;
     flex-wrap: wrap;
     margin-bottom: 10px;
+}
+
+/* на телефоне вкладки — сетка 2×2: кнопки одной ширины, а высота как у двух рядов */
+@media (max-width: 480px) {
+    .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .tabs__button--active {
