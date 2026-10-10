@@ -264,6 +264,22 @@ pre {
     display: block;
 }
 
+/* на телефоне плашки — столбик одной ширины; число и подпись в одну строку,
+   числа в колонке одной ширины — так они стоят ровно друг под другом */
+@media (max-width: 480px) {
+    .stats {
+        display: grid;
+        gap: 8px;
+    }
+
+    .stats__item {
+        display: grid;
+        grid-template-columns: 3.5em 1fr;
+        align-items: baseline;
+        padding: 8px 12px;
+    }
+}
+
 /* scroll — обёртка для широкой таблицы: прокручивается она, а не страница */
 .scroll {
     overflow-x: auto;
