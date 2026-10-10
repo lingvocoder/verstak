@@ -389,6 +389,11 @@ pre {
     text-align: right;
 }
 
+/* ячейка, которую нельзя разбивать на строки (короткий заголовок столбца) */
+.table__nowrap {
+    white-space: nowrap;
+}
+
 .table__empty {
     color: var(--muted);
     font-style: italic;

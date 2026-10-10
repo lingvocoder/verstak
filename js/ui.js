@@ -252,10 +252,11 @@ function renderStylometry() {
     return;
   }
 
-  // столбец «Текст Б» показываем, только если второй текст есть
-  const headers = [headerCell("Показатель"), headerCell("Текст А")];
+  // столбец «Текст Б» показываем, только если второй текст есть.
+  // «Текст А/Б» не переносим: переносится длинный столбец «Показатель»
+  const headers = [headerCell("Показатель"), headerCell("Текст А", "table__nowrap")];
   if (resultB) {
-    headers.push(headerCell("Текст Б"));
+    headers.push(headerCell("Текст Б", "table__nowrap"));
   }
   const bodyRows = STYLOMETRY_ROWS.map(({ label, value }) => {
     const cells = [cell(label), cell(resultA ? value(resultA) : "—")];
