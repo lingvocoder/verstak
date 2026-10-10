@@ -79,6 +79,29 @@ function readCliches() {
     .filter(line => line !== "");
 }
 
+// Подсветка кода. Одна регулярка, четыре вида кусков (номер группы → класс):
+// 1 — комментарий до конца строки, 2 — строка в кавычках,
+// 3 — имя функции прямо перед «(», 4 — скобки и знаки препинания.
+// Слева направо: на каждой позиции побеждает первая подходящая группа,
+// поэтому «//» внутри строки и апостроф в комментарии разбор не ломают.
+const CODE_TOKEN = /(\/\/.*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([\p{L}_$][\p{L}\p{N}_$]*)(?=\()|([()[\]{}.,;])/gu;
+const CODE_CLASSES = [null, "code__comment", "code__string", "code__function", "code__punct"];
+
+// Одна строка кода → HTML. Каждый кусок экранируем отдельно и только потом оборачиваем в span:
+// если экранировать всю строку заранее, " станет &quot; и регулярка будет резать сущности.
+function highlightLine(code) {
+  let html = "";
+  let last = 0;
+  for (const match of code.matchAll(CODE_TOKEN)) {
+    // обычный текст между подсвеченными кусками
+    html += escapeHtml(code.slice(last, match.index));
+    const group = CODE_CLASSES.findIndex((name, i) => i > 0 && match[i] !== undefined);
+    html += `<span class="${CODE_CLASSES[group]}">${escapeHtml(match[0])}</span>`;
+    last = match.index + match[0].length;
+  }
+  return html + escapeHtml(code.slice(last));
+}
+
 // Исходный текст функции → блок «Показать код».
 // Каждая строка — отдельный блок со своим отступом (--indent): если строка не влезает
 // в ширину телефона, её продолжение встаёт под её же начало, а не к левому краю.
@@ -89,7 +112,7 @@ function showCode(pre, source) {
       const code = line.trimStart();
       const indent = line.length - code.length;
       // пустой строке нужен хотя бы пробел, иначе у неё не будет высоты
-      return `<span class="code-line" style="--indent: ${indent}ch">${escapeHtml(code) || " "}</span>`;
+      return `<span class="code-line" style="--indent: ${indent}ch">${highlightLine(code) || " "}</span>`;
     })
     .join("");
 }

@@ -12,6 +12,14 @@
     --accent-ink: #ffffff;
     --mark: #ffe28a;
     --warn: #b3261e;
+    /* блок кода тёмный в обеих темах, поэтому эти цвета не переопределяются ниже */
+    --code-bg: #0e0e10;
+    --code-border: #2a2a2e;
+    --code-ink: #ececef;
+    --code-punct: #7c7c85;
+    --code-fn: #f472b6;
+    --code-str: #6ee7d8;
+    --code-comment: #8ea4c4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -98,21 +106,23 @@ summary {
 }
 
 pre {
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border: 1px solid var(--code-border);
+    border-radius: 16px;
+    padding: 20px;
     overflow-x: auto;
-    font-size: 0.9rem;
+    font: 0.9rem/1.8 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     /* длинные строки кода переносятся: на телефоне не нужно листать вбок */
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
 
-/* на телефоне шрифт кода мельче: в строку влезает больше знаков */
+/* на телефоне шрифт кода мельче и поля уже: в строку 390 px влезает ~40 знаков */
 @media (max-width: 480px) {
     pre {
-        font-size: 0.8rem;
+        padding: 14px 12px;
+        font-size: 0.75rem;
     }
 }
 
@@ -289,4 +299,21 @@ pre {
     display: block;
     padding-left: calc(var(--indent) + 2ch);
     text-indent: -2ch;
+}
+
+/* code — подсветка кусков в «Показать код» (классы ставит highlightLine в ui.js) */
+.code__comment {
+    color: var(--code-comment);
+}
+
+.code__string {
+    color: var(--code-str);
+}
+
+.code__function {
+    color: var(--code-fn);
+}
+
+.code__punct {
+    color: var(--code-punct);
 }
