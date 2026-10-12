@@ -35,6 +35,7 @@
         <button class="tabs__button" id="tab-button-kwic" data-tab="kwic" role="tab" aria-selected="false" aria-controls="tab-kwic">Конкорданс</button>
         <button class="tabs__button" id="tab-button-style" data-tab="style" role="tab" aria-selected="false" aria-controls="tab-style">Стилометрия</button>
         <button class="tabs__button" id="tab-button-len" data-tab="len" role="tab" aria-selected="false" aria-controls="tab-len">Длины слов</button>
+        <button class="tabs__button tabs__button--wide" id="tab-button-help" data-tab="help" role="tab" aria-selected="false" aria-controls="tab-help">Как считает</button>
     </nav>
 
     <!-- ===== Вкладка 1. Частоты ===== -->
@@ -58,10 +59,6 @@
         <div class="scroll">
             <table id="freq-table" class="table"></table>
         </div>
-        <details>
-            <summary>Показать код</summary>
-            <pre id="code-freq"></pre>
-        </details>
     </section>
 
     <!-- ===== Вкладка 2. Конкорданс ===== -->
@@ -81,10 +78,6 @@
         <div class="scroll">
             <table id="kwic-table" class="table concordance"></table>
         </div>
-        <details>
-            <summary>Показать код</summary>
-            <pre id="code-kwic"></pre>
-        </details>
     </section>
 
     <!-- ===== Вкладка 3. Стилометрия ===== -->
@@ -98,10 +91,6 @@
         <div class="scroll">
             <table id="style-table" class="table table--spaced"></table>
         </div>
-        <details>
-            <summary>Показать код</summary>
-            <pre id="code-style"></pre>
-        </details>
     </section>
 
     <!-- ===== Вкладка 4. Длины слов ===== -->
@@ -109,9 +98,68 @@
         <div class="scroll">
             <table id="len-table" class="table"></table>
         </div>
-        <details>
-            <summary>Показать код</summary>
-            <pre id="code-len"></pre>
+    </section>
+
+    <!-- ===== Вкладка 5. Как считает: правила по-русски + код функции, которая считает.
+         Код в <pre> подставляет ui.js из core.js (toString) — это тот же код, что работает ===== -->
+    <section id="tab-help" class="panel tab-panel doc" role="tabpanel" aria-labelledby="tab-button-help">
+        <h2 class="doc__title">Частоты</h2>
+        <p class="doc__text"><strong>Что считается словом.</strong> Слово — это буквы подряд, любого алфавита. Внутри слова может стоять дефис: <code>по-моему</code> — одно слово.</p>
+        <p class="doc__text"><strong>Что не считается.</strong> Цифры и знаки препинания словами не считаются: из <code>2004-м</code> остаётся только <code>м</code>. Апостроф режет слово надвое: <code>didn't</code> → <code>didn</code> и <code>t</code>. Сокращение <code>т. е.</code> даёт два слова: <code>т</code> и <code>е</code>.</p>
+        <p class="doc__text">Дефисом считается только обычный знак <code>-</code> с клавиатуры. Неразрывный дефис (в Word — Ctrl+Shift+-) и другие похожие на дефис знаки выглядят так же, но слово разрезают: <code>по‑моему</code> с неразрывным дефисом — два слова.</p>
+        <p class="doc__text"><strong>Как записано правило.</strong> Регулярным выражением <code>/\p{L}+(?:-\p{L}+)*/gu</code>. Здесь <code>\p{L}+</code> — одна или больше букв, <code>(?:-\p{L}+)*</code> — дальше ноль или больше раз «дефис + буквы». Как <code>re.findall</code> в Python, верстак собирает из текста все куски, подходящие под это правило.</p>
+        <p class="doc__text"><strong>Большие и маленькие буквы не различаются:</strong> <code>Реферат</code> и <code>реферат</code> — одно слово. В списке слова показаны маленькими буквами.</p>
+        <p class="doc__text"><strong>Формы слова не склеиваются:</strong> <code>реферат</code>, <code>реферата</code>, <code>рефератом</code> — три разные словоформы. Начальную форму слова (лемму) верстак не находит.</p>
+        <p class="doc__text"><strong>Числа над таблицей</strong> считаются по всему тексту, даже когда стоп-слова убраны. Словоупотреблений — все слова текста. Разных словоформ — сколько разных слов. Доля разных (TTR) — второе число, делённое на первое.</p>
+        <p class="doc__text"><strong>Порядок в списке:</strong> сначала самые частые; при равной частоте — в том порядке, в каком слова впервые встретились в тексте. Ранг — номер строки, поэтому у слов с одинаковой частотой ранги разные. «Ранг × частота» нужен для проверки закона Ципфа: у частых слов это произведение примерно постоянно.</p>
+        <p class="doc__text"><strong>«Убрать стоп-слова»</strong> убирает из таблицы слова из «Списка стоп-слов» и заново нумерует строки. Список можно править: слова в нём читаются по тому же правилу слова.</p>
+        <details class="code-block">
+            <summary class="code-block__title">Код: подсчёт частот</summary>
+            <pre id="code-freq" class="code-block__body"></pre>
+        </details>
+
+        <h2 class="doc__title">Конкорданс</h2>
+        <p class="doc__text"><strong>Что ищет.</strong> Слово целиком, по тому же правилу слова, что в «Частотах». Регистр не важен: <code>реферат</code> находит <code>Реферат</code>, но не <code>реферата</code>. В таблице слово показано так, как оно написано в тексте.</p>
+        <p class="doc__text"><strong>Слово с дефисом — одно слово:</strong> по запросу <code>моему</code> верстак не найдёт <code>по-моему</code>. Искать можно только одно слово: запрос из двух слов ничего не найдёт.</p>
+        <p class="doc__text"><strong>«Как начало слова»</strong> находит все слова, которые начинаются с запроса: <code>реферат</code> → <code>Реферат</code>, <code>рефераты</code>, <code>реферата</code>. Так удобно собрать формы одного слова, но в список попадут и другие слова с тем же началом: <code>лис</code> найдёт и <code>лиса</code>, и <code>лист</code>.</p>
+        <p class="doc__text"><strong>Контекст</strong> — сколько знаков показать слева и справа от слова, вместе с пробелами и знаками препинания. Контекст режется по знакам, а не по словам, поэтому крайнее слово может оказаться обрезанным: при контексте 5 из <code>Абвгдежзий реферат</code> слева останется <code>жзий</code>.</p>
+        <details class="code-block">
+            <summary class="code-block__title">Код: поиск вхождений</summary>
+            <pre id="code-kwic" class="code-block__body"></pre>
+        </details>
+
+        <h2 class="doc__title">Стилометрия</h2>
+        <p class="doc__text"><strong>Текст А и Текст Б.</strong> Текст А — из общего поля вверху. Текст Б — необязательный, для сравнения: пока его поле пустое, второго столбца нет.</p>
+        <p class="doc__text"><strong>Предложение</strong> заканчивается точкой, <code>!</code>, <code>?</code> или <code>…</code>, после которых идёт пробел или перенос строки. Отсюда ошибки машины:</p>
+        <ul class="doc__list">
+            <li><code>т. е.</code> и <code>2004 г.</code> она принимает за конец предложения;</li>
+            <li>в <code>«Привет!» Она ушла.</code> после <code>!</code> стоит кавычка, а не пробел, — предложение не разрезается;</li>
+            <li>в <code>Раз.Два.</code> после первой точки нет пробела — тоже не разрезается;</li>
+            <li>заголовок без точки склеивается со следующим предложением.</li>
+        </ul>
+        <p class="doc__text"><strong>Предложений</strong> — сколько кусков получилось. Кусок без букв (например, <code>2004.</code>) тоже считается предложением, но в среднюю длину и разброс не входит.</p>
+        <p class="doc__text"><strong>Средняя длина предложения</strong> — сколько слов в предложении в среднем. <strong>Разброс</strong> показывает, насколько длины предложений обычно отличаются от средней (стандартное отклонение, в Python — <code>statistics.pstdev</code>). Если все предложения одной длины, разброс 0. Два предложения из 1 и 3 слов: средняя длина 2, разброс 1.</p>
+        <p class="doc__text"><strong>Доля разных слов (весь текст)</strong> — разные словоформы, делённые на все слова (TTR, как в «Частотах»). Чем длиннее текст, тем она ниже: частые слова повторяются. Поэтому есть <strong>доля на первых 100 словах</strong> — по ней можно сравнивать тексты разной длины, если в каждом не меньше 100 слов. В тексте короче 100 слов обе доли совпадают. Русский и английский тексты так сравнивать нельзя: в русском у слова больше форм.</p>
+        <p class="doc__text"><strong>Доля стоп-слов</strong> — сколько слов текста входят в «Список стоп-слов» из «Частот», делённое на все слова. Галочка «убрать стоп-слова» на эту долю не влияет, а правка списка — влияет.</p>
+        <p class="doc__text"><strong>Средняя длина слова</strong> — сколько знаков в слове в среднем. Дефис тоже считается знаком: в <code>по-моему</code> 8 знаков.</p>
+        <p class="doc__text"><strong>Клише</strong> ищутся как точный кусок текста, без учёта регистра. Список можно править, по одному клише на строку. Поэтому:</p>
+        <ul class="doc__list">
+            <li>клише находится и внутри более длинного слова: если добавить в список <code>в целом</code>, оно найдётся в <code>в целомудрии</code>;</li>
+            <li>лишний пробел или перенос строки между словами — и клише не найдено;</li>
+            <li>апостроф должен быть тем же: <code>in today’s world</code> с типографским апострофом не совпадёт с <code>in today's world</code> из списка.</li>
+        </ul>
+        <details class="code-block">
+            <summary class="code-block__title">Код: показатели текста</summary>
+            <pre id="code-style" class="code-block__body"></pre>
+        </details>
+
+        <h2 class="doc__title">Длины слов</h2>
+        <p class="doc__text">Для каждой длины — сколько в тексте слов такой длины, от коротких к длинным. Слова выделяются по правилу из «Частот», повторы считаются: если <code>и</code> встретилось 5 раз, это 5 слов длины 1.</p>
+        <p class="doc__text"><strong>Длина считается в знаках,</strong> дефис тоже знак: <code>по-моему</code> — 8.</p>
+        <p class="doc__text">Такое распределение называют кривой Менденхолла: в 1887 году американский физик Т. К. Менденхолл предложил сравнивать по нему тексты разных авторов.</p>
+        <details class="code-block">
+            <summary class="code-block__title">Код: длины слов</summary>
+            <pre id="code-len" class="code-block__body"></pre>
         </details>
     </section>
 </div>

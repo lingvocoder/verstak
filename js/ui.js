@@ -221,7 +221,7 @@ const STYLOMETRY_ROWS = [
   { label: "Доля разных слов (весь текст)", value: result => formatNumber(result.ttr) },
   { label: "Доля разных слов (первые 100)", value: result => formatNumber(result.ttr100) },
   { label: "Доля стоп-слов", value: result => formatNumber(result.stopShare) },
-  { label: "Средняя длина слова", value: result => formatNumber(result.meanWordLen, 1) },
+  { label: "Средняя длина слова (знаков)", value: result => formatNumber(result.meanWordLen, 1) },
   { label: "Клише", value: result => formatCliches(result.cliches) },
 ];
 
@@ -273,7 +273,7 @@ function renderStylometry() {
 function renderWordLengths() {
   const lengths = wordLengths(tokenize(els.textA.value));
   const headerRow = row([
-    headerCell("Букв в слове", "table__num"),
+    headerCell("Знаков в слове", "table__num"),
     headerCell("Сколько слов", "table__num"),
   ]);
   const bodyRows = lengths.map(([length, count]) => row([
@@ -331,17 +331,12 @@ els.query.value = SAMPLE_QUERIES.ru;
 
 // Блоки «Показать код»: функция в JavaScript умеет выдать собственный исходный текст.
 // Поэтому студенты всегда видят ровно тот код, который сейчас работает.
-showCode(els.freqCode,
-  "// Шаблон слова. Разбор по частям —\n" +
-  "// внутри tokenize.\n" +
-  "const WORD = " + WORD + ";\n\n" + tokenize + "\n\n" + freq);
+// Код для вкладки «Как считает»: по одной функции, в которой идёт расчёт.
+// Помощники (tokenize, sentences, average…) не показываем, чтобы не перегружать:
+// что они делают, объяснено в тексте справки
+showCode(els.freqCode, freq.toString());
 showCode(els.kwicCode, kwic.toString());
-// сверху — что считается, ниже — помощники, которые считают
-const stylometryCode = [
-  sentences, stylometry, average, standardDeviation,
-  typeTokenRatio, stopWordShare, countCliches,
-];
-showCode(els.styleCode, stylometryCode.join("\n\n"));
+showCode(els.styleCode, stylometry.toString());
 showCode(els.lenCode, wordLengths.toString());
 
 for (const button of els.tabButtons) {

@@ -8,6 +8,7 @@
     --panel: #ffffff;
     --ink: #111827;
     --muted: #6b7280;
+    --ink-soft: #4b5563;
     --line: #e5e7eb;
     /* --accent — цвет текста и ссылок; --accent-solid — заливка кнопки под белым текстом.
        В тёмной теме это разные оттенки, поэтому переменных две */
@@ -31,6 +32,7 @@
     color-scheme: light dark;
     /* блок кода тёмный в обеих темах, поэтому эти цвета не переопределяются ниже */
     --code-bg: #0e0e10;
+    --code-head: #1c1c1f;
     --code-border: #2a2a2e;
     --code-ink: #ececef;
     --code-punct: #7c7c85;
@@ -45,6 +47,7 @@
         --panel: #1f2937;
         --ink: #f3f4f6;
         --muted: #9ca3af;
+        --ink-soft: #d1d5db;
         --line: rgb(255 255 255 / 0.1);
         --accent: #818cf8;
         --accent-solid: #6366f1;
@@ -67,6 +70,7 @@
     --panel: #1f2937;
     --ink: #f3f4f6;
     --muted: #9ca3af;
+    --ink-soft: #d1d5db;
     --line: rgb(255 255 255 / 0.1);
     --accent: #818cf8;
     --accent-solid: #6366f1;
@@ -302,6 +306,11 @@ pre {
         display: grid;
         grid-template-columns: 1fr 1fr;
     }
+
+    /* «Как считает» — пятая кнопка: на всю ширину, а не одна в половине ряда */
+    .tabs__button--wide {
+        grid-column: 1 / -1;
+    }
 }
 
 /* активная вкладка — «primary» из Tailwind UI: заливка индиго, белый текст */
@@ -450,4 +459,94 @@ pre {
 
 .code__punct {
     color: var(--code-punct);
+}
+
+/* doc — вкладка «Как считает»: текст справки в стиле документации */
+.doc__title {
+    margin: 32px 0 8px;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.doc__title:first-child {
+    margin-top: 4px;
+}
+
+.doc__text {
+    margin: 0 0 12px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+}
+
+.doc__text strong,
+.doc__list strong {
+    color: var(--ink);
+}
+
+.doc__list {
+    margin: 0 0 12px;
+    padding-left: 22px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+}
+
+.doc__list li {
+    margin-bottom: 4px;
+}
+
+/* код внутри текста — «плашка»: моноширинный шрифт на светлом фоне */
+code {
+    padding: 1px 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: var(--table-head);
+    color: var(--ink);
+    font: 0.85em ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+/* code-block — блок кода с тёмной шапкой-названием; по нажатию на шапку раскрывается */
+.code-block {
+    margin: 16px 0 8px;
+    border: 1px solid var(--code-border);
+    border-radius: 16px;
+    background: var(--code-bg);
+    overflow: hidden;
+}
+
+.code-block__title {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px;
+    background: var(--code-head);
+    color: var(--code-ink);
+    font-weight: 600;
+    list-style: none;
+}
+
+/* свой значок вместо системного треугольника: подсказка словом, что блок раскрывается */
+.code-block__title::-webkit-details-marker {
+    display: none;
+}
+
+.code-block__title::after {
+    content: "Показать";
+    color: var(--code-punct);
+    font-weight: 400;
+}
+
+.code-block[open] .code-block__title {
+    border-bottom: 1px solid var(--code-border);
+}
+
+.code-block[open] .code-block__title::after {
+    content: "Скрыть";
+}
+
+/* сам код — тот же pre, но без своей рамки: рамка у всего блока */
+.code-block__body {
+    margin: 0;
+    border: none;
+    border-radius: 0;
 }
